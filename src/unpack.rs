@@ -237,6 +237,13 @@ pub(crate) fn unpack(
                     .components()
                     .skip_while(|comp| comp.as_str() != "lib" && comp.as_str() != "include")
                 {
+                    // A member name is attacker-controlled; only plain components may reach the file system
+                    // (a `..`, a root or a drive prefix would write outside the unpack directory).
+                    anyhow::ensure!(
+                        matches!(comp, camino::Utf8Component::Normal(_)),
+                        "refusing VSIX member {} from {pkg}: path component {comp} escapes the unpack directory",
+                        file.name(),
+                    );
                     fs_path.push(comp);
                 }
 

@@ -262,11 +262,13 @@ fn main() -> Result<(), Error> {
     setup_logger(args.json, args.level)?;
 
     if !args.accept_license {
-        // The license link is the same for every locale, but we should probably
-        // retrieve it from the manifest in the future
-        println!(
-            "Do you accept the license at https://go.microsoft.com/fwlink/?LinkId=2086102 (yes | no)?"
-        );
+        // The terms differ per manifest version: 17 is Visual Studio 2022, 18 is Visual Studio 2026.
+        let terms = match (args.manifest.is_some(), args.manifest_version) {
+            (false, 17) => "https://visualstudio.microsoft.com/license-terms/vs2022-ga-diagnosticbuildtools/",
+            (false, 18) => "https://visualstudio.microsoft.com/license-terms/vs2026-ga-diagnostic-buildtools/",
+            _ => "https://go.microsoft.com/fwlink/?LinkId=2086102",
+        };
+        println!("Do you accept the license at {terms} (yes | no)?");
 
         let mut accept = String::new();
         std::io::stdin().read_line(&mut accept)?;
